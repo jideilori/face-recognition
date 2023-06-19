@@ -5,12 +5,13 @@ import mediapipe as mp
 import pickle
 from utils.align_face import align_face
 from  utils.encoding import get_encode
-RESIZE_HEIGHT = 240
+RESIZE_HEIGHT = 480
 facemodel =  pickle.load(open('res/facemodel.pkl', 'rb'))
 celebs = np.load('res/people.npy',allow_pickle=True)
 
 
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
+cap =  cv2.VideoCapture('video/elon-musk-sink.mp4')
 detector = dlib.get_frontal_face_detector()
 pred_threshold = 0.55
 offset = 40
@@ -58,6 +59,13 @@ def recognize_face(cropped,face_mesh):
       return
 
 
+# save video
+v_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) + 0.5)
+v_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) + 0.5)
+v_size = (v_width, v_height)
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('video/result.mp4', fourcc, 20.0, v_size)
+
 # identified = {}
 count=0
 SKIP_FRAMES=2
@@ -94,7 +102,7 @@ with mp_face_mesh.FaceMesh(
                 pass
             # Detector is ran after every 10 frames
             if (count % SKIP_FRAMES) == 0:
-                dets = detector(img)
+                dets = detector(img,1)
                 for i, d in enumerate(dets):
                     cv2.rectangle(img,(d.left(),d.top()),(d.right(),d.bottom()),(0,0,255,2))
                     x,y = d.left()*DOWNSAMPLE_RATIO,d.top()*DOWNSAMPLE_RATIO
@@ -151,15 +159,19 @@ with mp_face_mesh.FaceMesh(
             count+=1
             if count==11:
                 count=0
-            
-            # Display output
-            cv2.imshow('Video', frame_normal)
 
+            out.write(frame_normal)
+
+            # Display output
+            cv2.namedWindow('video',cv2.WINDOW_FREERATIO)
+            cv2.imshow('video', frame_normal)
             # Hit 'q' on the keyboard to quit!
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
 # Release handle to the webcam
+
+out.release()
 cap.release()
 cv2.destroyAllWindows()
 
