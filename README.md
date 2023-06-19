@@ -1,4 +1,4 @@
-# face-recognition
+# Simple face-recognition with multiple object tracking
 
 1. Create folders in `known_people` with `under_score`.
 2. Run python3 train.py to augment dataset,train and save classifier.
